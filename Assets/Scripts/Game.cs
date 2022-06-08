@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
+using UnityEngine.UI;
 public class Game : MonoBehaviour
 {
     [SerializeField] List<Transform> characterLocationsLeft;
@@ -21,11 +22,12 @@ public class Game : MonoBehaviour
     [SerializeField] Transform playerWait;
     bool boolFight = false;
     bool boolWait = false;
+    bool boolAutoFight = false;
     Character targetCharacter;
     int indexTarget;
     void Start()
     {
-        // Атака или пропустить ход. Выбор цели атаки.
+        // Знаки атаки и пропуска. Здоровье над персонажами. Надпись "Укажите цель"
         character = Resources.Load<GameObject>("Character");
         RestartGame();
     }
@@ -119,7 +121,6 @@ public class Game : MonoBehaviour
     void RestartGame()
     {
         Generation();
-        //StartCoroutine(AutoFight());
         StartCoroutine(Fight());
     }
     IEnumerator WaitPlayer()
@@ -166,20 +167,31 @@ public class Game : MonoBehaviour
                     bool leftSide = turn[y].getSide();
                     if (leftSide == true)
                     {
-                        PlayerChoice = true;
-                        playerChoice.gameObject.SetActive(true);
-                        yield return StartCoroutine(WaitPlayer());
-                        if (boolWait == false)
+                        if (boolAutoFight == false)
                         {
-                            bool attack = true;
-                            StartCoroutine(turn[y].RunCenter(attack));
-                            yield return StartCoroutine(PlayerAttack(y));
-                            StartCoroutine(turn[y].RunBack());
-                            yield return new WaitForSeconds(delayRun);
+                            PlayerChoice = true;
+                            playerChoice.gameObject.SetActive(true);
+                            yield return StartCoroutine(WaitPlayer());
+                            if (boolWait == false)
+                            {
+                                bool attack = true;
+                                StartCoroutine(turn[y].RunCenter(attack));
+                                yield return StartCoroutine(PlayerAttack(y));
+                                StartCoroutine(turn[y].RunBack());
+                                yield return new WaitForSeconds(delayRun);
+                            }
+                            else
+                            {
+                                boolWait = false;
+                            }
                         }
                         else
                         {
-                            boolWait = false;
+                            bool attack = true;
+                            StartCoroutine(turn[y].RunCenter(attack));
+                            yield return StartCoroutine(Attack(characterRight, y));
+                            StartCoroutine(turn[y].RunBack());
+                            yield return new WaitForSeconds(delayRun);
                         }
                     }
                     else
@@ -190,8 +202,6 @@ public class Game : MonoBehaviour
                         StartCoroutine(turn[y].RunBack());
                         yield return new WaitForSeconds(delayRun);
                     }
-                    //StartCoroutine(turn[y].RunBack());
-                    //yield return new WaitForSeconds(delayRun);
                 }
             }
             foreach (var item in turn)
@@ -236,59 +246,6 @@ public class Game : MonoBehaviour
             characterRight[indexTarget] = targetCharacter;
         }
     }
-
-    IEnumerator AutoFight()
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            List<Character> newTurn = new List<Character>();
-            for (int y = 0; y < turn.Count; y++)
-            {
-                if (characterRight.Count == 0 || characterLeft.Count == 0)
-                {
-                    int count = characterRight.Count;
-                    for (int z = 0; z < count; z++)
-                    {
-                        DeceasedCharacters.Add(characterRight[0]);
-                        characterRight.RemoveAt(0);
-                    }
-                    count = characterLeft.Count;
-                    for (int x = 0; x < count; x++)
-                    {
-                        DeceasedCharacters.Add(characterLeft[0]);
-                        characterLeft.RemoveAt(0);
-                    }
-                    yield return new WaitForSeconds(2.0f);
-                    RestartGame();
-                    yield break;
-                }
-                if (turn[y].GetDeath() == false)
-                {
-                    bool attack = true;
-                    StartCoroutine(turn[y].RunCenter(attack));
-                    bool leftSide = turn[y].getSide();
-                    if (leftSide == true)
-                    {
-                        yield return StartCoroutine(Attack(characterRight, y));
-                    }
-                    else
-                    {
-                        yield return StartCoroutine(Attack(characterLeft, y));
-                    }
-                    StartCoroutine(turn[y].RunBack());
-                    yield return new WaitForSeconds(delayRun);
-                }
-            }
-            foreach (var item in turn)
-            {
-                if (item.GetDeath() == false)
-                {
-                    newTurn.Add(item);
-                }
-            }
-            turn = newTurn;
-        }
-    }
     IEnumerator Attack(List<Character> Characters, int turnIndex)
     {
         int index = Random.Range(0, Characters.Count);
@@ -314,6 +271,23 @@ public class Game : MonoBehaviour
             StartCoroutine(temp.Hit());
             StartCoroutine(temp.RunBack());
             Characters[index] = temp;
+        }
+    }
+    public void ChangeAutoFight(Button button)
+    {
+        Text text = button.GetComponentInChildren<Text>();
+        Image image = button.GetComponent<Image>();
+        if (boolAutoFight == false)
+        {
+            boolAutoFight = true;
+            text.text = "Автобой\nВключён";
+            image.color = Color.green;
+        }
+        else
+        {
+            boolAutoFight = false;
+            text.text = "Автобой\nВыключен";
+            image.color = Color.red;
         }
     }
 }
