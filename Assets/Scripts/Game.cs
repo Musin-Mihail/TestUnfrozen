@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Spine.Unity;
+
 public class Game : MonoBehaviour
 {
     [SerializeField] List<Transform> characterLocationsLeft;
@@ -27,7 +27,7 @@ public class Game : MonoBehaviour
         {
             GameObject GO = Instantiate(this.character, item.position, Quaternion.identity);
             leftSide = true;
-            Character character = new Character(GO, leftSide);
+            Character character = new Character(GO, leftSide, centerLeft);
             turn.Add(character);
             characterLeft.Add(character);
         }
@@ -35,7 +35,7 @@ public class Game : MonoBehaviour
         {
             GameObject GO = Instantiate(this.character, item.position, Quaternion.Euler(0, 180, 0));
             leftSide = false;
-            Character character = new Character(GO, leftSide);
+            Character character = new Character(GO, leftSide, centerRight);
             turn.Add(character);
             characterRight.Add(character);
         }
@@ -60,22 +60,27 @@ public class Game : MonoBehaviour
                 }
                 if (turn[y].GetDeath() == false)
                 {
-                    yield return new WaitForSeconds(0.5f);
-                    turn[y].Shoot();
+                    StartCoroutine(turn[y].RunCenterAtack());
                     if (turn[y].getSide() == true)
                     {
                         int index = Random.Range(0, characterRight.Count);
                         Character temp = characterRight[index];
+                        StartCoroutine(temp.RunCenter());
+                        yield return new WaitForSeconds(3);
+                        StartCoroutine(turn[y].Shoot(temp.GetPositionHead()));
+                        yield return new WaitForSeconds(0.5f);
                         temp.TakeAwayHealth();
                         int index2 = turn.IndexOf(characterRight[index]);
                         turn[index2] = temp;
                         if (temp.GetDeath() == true)
                         {
+                            temp.SetLayerBack();
                             DeceasedCharacters.Add(temp);
                             characterRight.RemoveAt(index);
                         }
                         else
                         {
+                            StartCoroutine(temp.RunBack());
                             characterRight[index] = temp;
                         }
                     }
@@ -83,20 +88,27 @@ public class Game : MonoBehaviour
                     {
                         int index = Random.Range(0, characterLeft.Count);
                         Character temp = characterLeft[index];
+                        StartCoroutine(temp.RunCenter());
+                        yield return new WaitForSeconds(3);
+                        StartCoroutine(turn[y].Shoot(temp.GetPositionHead()));
+                        yield return new WaitForSeconds(0.5f);
                         temp.TakeAwayHealth();
                         int index2 = turn.IndexOf(characterLeft[index]);
                         turn[index2] = temp;
 
                         if (temp.GetDeath() == true)
                         {
+                            temp.SetLayerBack();
                             DeceasedCharacters.Add(temp);
                             characterLeft.RemoveAt(index);
                         }
                         else
                         {
+                            StartCoroutine(temp.RunBack());
                             characterLeft[index] = temp;
                         }
                     }
+                    yield return StartCoroutine(turn[y].RunBack());
                 }
             }
             foreach (var item in turn)
@@ -107,52 +119,6 @@ public class Game : MonoBehaviour
                 }
             }
             turn = newTurn;
-        }
-    }
-    struct Character
-    {
-        int health;
-        bool leftSide;
-        SkeletonAnimation skeletonAnimation;
-        bool death;
-        public Character(GameObject GO, bool leftSide)
-        {
-            health = 100;
-            this.leftSide = leftSide;
-            skeletonAnimation = GO.GetComponent<SkeletonAnimation>();
-            skeletonAnimation.state.SetAnimation(0, "idle", true);
-            death = false;
-        }
-        public int gethealth()
-        {
-            return health;
-        }
-        public bool getSide()
-        {
-            return leftSide;
-        }
-        public int TakeAwayHealth()
-        {
-            health -= Random.Range(0, 100);
-            if (health <= 0)
-            {
-                death = true;
-                skeletonAnimation.state.SetAnimation(0, "death", false);
-                Debug.Log("Death");
-            }
-            else
-            {
-                Debug.Log(health);
-            }
-            return health;
-        }
-        public void Shoot()
-        {
-            skeletonAnimation.state.SetAnimation(1, "shoot", false);
-        }
-        public bool GetDeath()
-        {
-            return death;
         }
     }
 }
