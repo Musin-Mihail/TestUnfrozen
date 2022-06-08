@@ -42,8 +42,8 @@ public struct Character
     }
     public int TakeAwayHealth()
     {
-        health -= Random.Range(0, 100);
-        //health -= 100;
+        //health -= Random.Range(0, 100);
+        health -= 100;
         if (health <= 0)
         {
             death = true;
@@ -143,5 +143,24 @@ public struct Character
     public void SetLayerBack()
     {
         meshRenderer.sortingOrder = 2;
+    }
+    public void Reset(Vector3 newPosition, bool leftSide, Transform center)
+    {
+        body.position = newPosition;
+        place = newPosition;
+        skeletonAnimation.ClearState();
+        skeletonAnimation.state.SetAnimation(0, "idle", true);
+        health = 100;
+        this.leftSide = leftSide;
+        death = false;
+        this.center = center.position;
+        if(leftSide == true)
+        {
+            body.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        else
+        {
+            body.rotation = Quaternion.Euler(0, -180, 0);
+        }
     }
 }
