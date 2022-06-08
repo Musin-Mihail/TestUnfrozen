@@ -18,6 +18,7 @@ public class Game : MonoBehaviour
     float delayShoot = 0.5f;
     bool PlayerChoice = false;
     [SerializeField] Transform playerChoice;
+    [SerializeField] Transform selectTarget;
     [SerializeField] Transform playerFight;
     [SerializeField] Transform playerWait;
     bool boolFight = false;
@@ -27,7 +28,6 @@ public class Game : MonoBehaviour
     int indexTarget;
     void Start()
     {
-        // Знаки атаки и пропуска. Здоровье над персонажами. Надпись "Укажите цель"
         character = Resources.Load<GameObject>("Character");
         RestartGame();
     }
@@ -47,6 +47,7 @@ public class Game : MonoBehaviour
                             targetCharacter = characterRight[i];
                             indexTarget = i;
                             PlayerChoice = false;
+                            selectTarget.gameObject.SetActive(false);
                             break;
                         }
                     }
@@ -57,6 +58,7 @@ public class Game : MonoBehaviour
                     {
                         boolFight = true;
                         playerChoice.gameObject.SetActive(false);
+                        selectTarget.gameObject.SetActive(true);
                     }
                 }
                 if (hit.transform == playerWait)

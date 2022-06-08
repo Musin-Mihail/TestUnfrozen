@@ -1,12 +1,12 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Spine.Unity;
 using System.Threading;
-using System.Threading.Tasks;
 public struct Character
 {
     int health;
+    Text textHealth;
     bool leftSide;
     SkeletonAnimation skeletonAnimation;
     bool death;
@@ -17,6 +17,7 @@ public struct Character
     Spine.Bone boneHead;
     Spine.Bone boneAim;
     MeshRenderer meshRenderer;
+    RectTransform canvasText;
     public Character(GameObject GO, bool leftSide, Transform center)
     {
         health = 100;
@@ -31,6 +32,14 @@ public struct Character
         boneHead = skeletonAnimation.Skeleton.FindBone("head");
         boneAim = skeletonAnimation.Skeleton.FindBone("crosshair");
         meshRenderer = GO.GetComponent<MeshRenderer>();
+        textHealth = GO.GetComponentInChildren<Text>();
+        RectTransform test = GO.transform.GetChild(0).GetComponent<RectTransform>();
+        textHealth.text = health.ToString();
+        canvasText = GO.transform.GetChild(0).GetComponent<RectTransform>();
+        if (leftSide == false)
+        {
+            canvasText.rotation = Quaternion.identity;
+        }
     }
     public int gethealth()
     {
@@ -42,10 +51,19 @@ public struct Character
     }
     public int TakeAwayHealth()
     {
-        //health -= Random.Range(0, 100);
-        health -= 100;
+        health -= Random.Range(30, 101);
+        //health -= 100;
+        if (health >= 0)
+        {
+            textHealth.text = health.ToString();
+        }
+        else
+        {
+            textHealth.text = "0";
+        }
         if (health <= 0)
         {
+            canvasText.gameObject.SetActive(false);
             death = true;
             skeletonAnimation.state.SetAnimation(0, "death", false);
         }
@@ -135,6 +153,7 @@ public struct Character
         {
             body.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
+        canvasText.rotation = Quaternion.identity;
         skeletonAnimation.ClearState();
         skeletonAnimation.state.SetAnimation(0, "run", true);
         while (true)
@@ -154,6 +173,7 @@ public struct Character
         {
             body.transform.rotation = Quaternion.Euler(0, -180, 0);
         }
+        canvasText.rotation = Quaternion.identity;
         SetLayerBack();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
     }
@@ -176,6 +196,7 @@ public struct Character
         skeletonAnimation.ClearState();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
         health = 100;
+        textHealth.text = health.ToString();
         this.leftSide = leftSide;
         death = false;
         this.center = center.position;
@@ -187,5 +208,7 @@ public struct Character
         {
             body.rotation = Quaternion.Euler(0, -180, 0);
         }
+        canvasText.rotation = Quaternion.identity;
+        canvasText.gameObject.SetActive(true);
     }
 }
