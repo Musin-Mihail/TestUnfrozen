@@ -16,8 +16,7 @@ public struct Character
     Vector3 place;
     Spine.Bone boneHead;
     Spine.Bone boneAim;
-
-
+    MeshRenderer meshRenderer;
     public Character(GameObject GO, bool leftSide, Transform center)
     {
         health = 100;
@@ -31,6 +30,7 @@ public struct Character
         place = GO.transform.position;
         boneHead = skeletonAnimation.Skeleton.FindBone("head");
         boneAim = skeletonAnimation.Skeleton.FindBone("crosshair");
+        meshRenderer = GO.GetComponent<MeshRenderer>();
     }
     public int gethealth()
     {
@@ -43,28 +43,29 @@ public struct Character
     public int TakeAwayHealth()
     {
         health -= Random.Range(0, 100);
+        //health -= 100;
         if (health <= 0)
         {
             death = true;
             skeletonAnimation.state.SetAnimation(0, "death", false);
-            Debug.Log("Death");
-        }
-        else
-        {
-            Debug.Log(health);
         }
         return health;
     }
     public IEnumerator Shoot(Vector2 target)
     {
         skeletonAnimation.state.SetAnimation(1, "aim", false);
-        Debug.Log(target);
         boneAim.SetLocalPosition(body.InverseTransformPoint(target));
         yield return new WaitForSeconds(0.5f);
         skeletonAnimation.state.SetAnimation(2, "shoot", false);
         yield return new WaitForSeconds(0.5f);
         skeletonAnimation.ClearState();
-        skeletonAnimation.state.SetAnimation(0, "idle", false);
+        skeletonAnimation.state.SetAnimation(0, "idle", true);
+    }
+    public IEnumerator Hit()
+    {
+        skeletonAnimation.state.SetAnimation(0, "idle-turn", false);
+        yield return new WaitForSeconds(0.2f);
+        skeletonAnimation.state.SetAnimation(0, "idle", true);
     }
     public bool GetDeath()
     {
@@ -75,26 +76,17 @@ public struct Character
         Vector2 positionHead = new Vector2(boneHead.WorldX, boneHead.WorldY) + (Vector2)body.position;
         return positionHead;
     }
-    public IEnumerator RunCenter()
+    public IEnumerator RunCenter(bool attack)
     {
         yield return new WaitForSeconds(1);
-        SetLayerTop();
-        skeletonAnimation.state.SetAnimation(0, "run", true);
-        while (true)
+        if (attack)
         {
-            body.position = Vector3.MoveTowards(body.position, center, runningSpeed * Time.deltaTime);
-            yield return new WaitForSeconds(5f * Time.deltaTime);
-            if (body.position == center)
-            {
-                break;
-            }
+            SetLayerAttack();
         }
-        skeletonAnimation.state.SetAnimation(0, "idle", true);
-    }
-    public IEnumerator RunCenterAtack()
-    {
-        yield return new WaitForSeconds(1);
-        SetLayerAtack();
+        else
+        {
+            SetLayerTop();
+        }
         skeletonAnimation.state.SetAnimation(0, "run", true);
         while (true)
         {
@@ -118,6 +110,7 @@ public struct Character
         {
             body.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
+        skeletonAnimation.ClearState();
         skeletonAnimation.state.SetAnimation(0, "run", true);
         while (true)
         {
@@ -139,16 +132,16 @@ public struct Character
         SetLayerBack();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
     }
-    public void SetLayerAtack()
+    public void SetLayerAttack()
     {
-        skeletonAnimation.gameObject.GetComponent<MeshRenderer>().sortingOrder = 4;
+        meshRenderer.sortingOrder = 4;
     }
     public void SetLayerTop()
     {
-        skeletonAnimation.gameObject.GetComponent<MeshRenderer>().sortingOrder = 3;
+        meshRenderer.sortingOrder = 3;
     }
     public void SetLayerBack()
     {
-        skeletonAnimation.gameObject.GetComponent<MeshRenderer>().sortingOrder = 2;
+        meshRenderer.sortingOrder = 2;
     }
 }
