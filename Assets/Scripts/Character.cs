@@ -26,7 +26,7 @@ public struct Character
         body = GO.transform;
         death = false;
         this.center = center.position;
-        runningSpeed = 80;
+        runningSpeed = 100;
         place = GO.transform.position;
         boneHead = skeletonAnimation.Skeleton.FindBone("head");
         boneAim = skeletonAnimation.Skeleton.FindBone("crosshair");
@@ -51,15 +51,36 @@ public struct Character
         }
         return health;
     }
-    public IEnumerator Shoot(Vector2 target)
+    public IEnumerator Shoot(CancellationTokenSource cts)
     {
-        skeletonAnimation.state.SetAnimation(1, "aim", false);
-        boneAim.SetLocalPosition(body.InverseTransformPoint(target));
         yield return new WaitForSeconds(0.5f);
         skeletonAnimation.state.SetAnimation(2, "shoot", false);
+        cts.Cancel();
         yield return new WaitForSeconds(0.5f);
         skeletonAnimation.ClearState();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
+    }
+    public IEnumerator Aim(Spine.Bone boneHead, CancellationToken token, Transform target)
+    {
+        skeletonAnimation.state.SetAnimation(1, "aim", false);
+        while (true)
+        {
+            try
+            {
+                token.ThrowIfCancellationRequested();
+                Vector2 positionHead = new Vector2(boneHead.WorldX, boneHead.WorldY) + (Vector2)target.position;
+                boneAim.SetLocalPosition(body.InverseTransformPoint(positionHead));
+            }
+            catch
+            {
+                yield break;
+            }
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
+    public Transform GetBody()
+    {
+        return body;
     }
     public IEnumerator Hit()
     {
@@ -75,6 +96,10 @@ public struct Character
     {
         Vector2 positionHead = new Vector2(boneHead.WorldX, boneHead.WorldY) + (Vector2)body.position;
         return positionHead;
+    }
+    public Spine.Bone GetBoneHead()
+    {
+        return boneHead;
     }
     public IEnumerator RunCenter(bool attack)
     {
@@ -154,7 +179,7 @@ public struct Character
         this.leftSide = leftSide;
         death = false;
         this.center = center.position;
-        if(leftSide == true)
+        if (leftSide == true)
         {
             body.rotation = Quaternion.Euler(0, 0, 0);
         }

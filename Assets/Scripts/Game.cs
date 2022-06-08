@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System.Threading;
 public class Game : MonoBehaviour
 {
     [SerializeField] List<Transform> characterLocationsLeft;
@@ -13,9 +13,11 @@ public class Game : MonoBehaviour
     List<Character> characterLeft = new List<Character>();
     List<Character> characterRight = new List<Character>();
     List<Character> DeceasedCharacters = new List<Character>();
+    float delayRun = 2.5f;
+    float delayShoot = 0.5f;
     void Start()
     {
-        // Атака или пропустить ход. Выбор цели атаки. При движении в центр другие персонажы сдвигаются вглубь. Пул персонажей.
+        // Атака или пропустить ход. Выбор цели атаки.
         character = Resources.Load<GameObject>("Character");
         RestartGame();
     }
@@ -103,10 +105,9 @@ public class Game : MonoBehaviour
                 }
                 if (turn[y].GetDeath() == false)
                 {
-                    //bool attack = true;
-                    //StartCoroutine(turn[y].RunCenter(attack));
+                    bool attack = true;
+                    StartCoroutine(turn[y].RunCenter(attack));
                     bool leftSide = turn[y].getSide();
-                    Debug.Log("Жду атаки");
                     if (leftSide == true)
                     {
                         yield return StartCoroutine(Attack(characterRight, y));
@@ -115,9 +116,8 @@ public class Game : MonoBehaviour
                     {
                         yield return StartCoroutine(Attack(characterLeft, y));
                     }
-                    Debug.Log("Жду возврата");
-                    //StartCoroutine(turn[y].RunBack());
-                    //yield return new WaitForSeconds(3.0f);
+                    StartCoroutine(turn[y].RunBack());
+                    yield return new WaitForSeconds(delayRun);
                 }
             }
             foreach (var item in turn)
@@ -136,13 +136,15 @@ public class Game : MonoBehaviour
         Debug.Log("Атака");
         int index = Random.Range(0, Characters.Count);
         Character temp = Characters[index];
-        //bool attack = false;
-        Debug.Log("Цель бежит в центр");
-        //StartCoroutine(temp.RunCenter(attack));
-        //yield return new WaitForSeconds(3.0f);
+        bool attack = false;
+        Debug.Log("В центр");
+        CancellationTokenSource cts = new CancellationTokenSource();
+        StartCoroutine(turn[turnIndex].Aim(temp.GetBoneHead(), cts.Token, temp.GetBody()));
+        StartCoroutine(temp.RunCenter(attack));
+        yield return new WaitForSeconds(delayRun);
         Debug.Log("Стрельба");
-        StartCoroutine(turn[turnIndex].Shoot(temp.GetPositionHead()));
-        yield return new WaitForSeconds(0.5f);
+        StartCoroutine(turn[turnIndex].Shoot(cts));
+        yield return new WaitForSeconds(delayShoot);
         temp.TakeAwayHealth();
         int index2 = turn.IndexOf(Characters[index]);
         turn[index2] = temp;
@@ -150,13 +152,12 @@ public class Game : MonoBehaviour
         {
             temp.SetLayerBack();
             DeceasedCharacters.Add(temp);
-            Debug.Log("Смерть - " + DeceasedCharacters.Count);
             Characters.RemoveAt(index);
         }
         else
         {
             StartCoroutine(temp.Hit());
-            //StartCoroutine(temp.RunBack());
+            StartCoroutine(temp.RunBack());
             Characters[index] = temp;
         }
     }
