@@ -27,7 +27,7 @@ public struct Character
         body = GO.transform;
         death = false;
         this.center = center.position;
-        runningSpeed = 100;
+        runningSpeed = 20;
         place = GO.transform.position;
         boneHead = skeletonAnimation.Skeleton.FindBone("head");
         boneAim = skeletonAnimation.Skeleton.FindBone("crosshair");
@@ -76,6 +76,7 @@ public struct Character
     }
     public IEnumerator Aim(Spine.Bone boneHead, CancellationToken token, Transform target)
     {
+        SetLayerAttack();
         skeletonAnimation.state.SetAnimation(1, "aim", false);
         while (true)
         {
@@ -125,7 +126,7 @@ public struct Character
         while (true)
         {
             body.position = Vector3.MoveTowards(body.position, center, runningSpeed * Time.deltaTime);
-            yield return new WaitForSeconds(5f * Time.deltaTime);
+            yield return new WaitForSeconds(0.1f * Time.deltaTime);
             if (body.position == center)
             {
                 break;
@@ -147,10 +148,11 @@ public struct Character
         canvasText.rotation = Quaternion.identity;
         skeletonAnimation.ClearState();
         skeletonAnimation.state.SetAnimation(0, "run", true);
+
         while (true)
         {
             body.position = Vector3.MoveTowards(body.position, place, runningSpeed * Time.deltaTime);
-            yield return new WaitForSeconds(5f * Time.deltaTime);
+            yield return new WaitForSeconds(0.1f * Time.deltaTime);
             if (body.position == place)
             {
                 break;

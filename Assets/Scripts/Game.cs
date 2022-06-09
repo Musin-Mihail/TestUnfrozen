@@ -26,6 +26,11 @@ public class Game : MonoBehaviour
     private bool boolAutoFight = false;
     private Character targetCharacter;
     private int indexTarget;
+    Quaternion rotationLeft = Quaternion.Euler(0, 0, 0);
+    Quaternion rotationRight = Quaternion.Euler(0, -180, 0);
+    Transform attacker;
+    Transform defender;
+    bool run;
     private void Start()
     {
         character = Resources.Load<GameObject>("Character");
@@ -82,40 +87,12 @@ public class Game : MonoBehaviour
         foreach (var item in characterLocationsLeft)
         {
             leftSide = true;
-            if (PoolCharacters.Count > 0)
-            {
-                Character tempCharacter = PoolCharacters[0];
-                PoolCharacters.RemoveAt(0);
-                tempCharacter.Reset(item.position, leftSide, centerLeft);
-                turn.Add(tempCharacter);
-                characterLeft.Add(tempCharacter);
-            }
-            else
-            {
-                GameObject GO = Instantiate(this.character, item.position, Quaternion.identity);
-                Character character = new Character(GO, leftSide, centerLeft);
-                turn.Add(character);
-                characterLeft.Add(character);
-            }
+            PoolAddCharacter(leftSide, item.position, centerLeft, characterLeft, rotationLeft);
         }
         foreach (var item in characterLocationsRight)
         {
             leftSide = false;
-            if (PoolCharacters.Count > 0)
-            {
-                Character tempCharacter = PoolCharacters[0];
-                PoolCharacters.RemoveAt(0);
-                tempCharacter.Reset(item.position, leftSide, centerRight);
-                turn.Add(tempCharacter);
-                characterRight.Add(tempCharacter);
-            }
-            else
-            {
-                GameObject GO = Instantiate(this.character, item.position, Quaternion.Euler(0, 180, 0));
-                Character character = new Character(GO, leftSide, centerRight);
-                turn.Add(character);
-                characterRight.Add(character);
-            }
+            PoolAddCharacter(leftSide, item.position, centerRight, characterRight, rotationRight);
         }
         for (int i = 0; i < turn.Count; i++)
         {
@@ -125,24 +102,42 @@ public class Game : MonoBehaviour
             turn[randomIndex] = tempCharacter;
         }
     }
-    //Зделать пул
+    void PoolAddCharacter(bool leftSide, Vector3 position, Transform center, List<Character> characters, Quaternion rotation)
+    {
+        if (PoolCharacters.Count > 0)
+        {
+            Character tempCharacter = PoolCharacters[0];
+            PoolCharacters.RemoveAt(0);
+            tempCharacter.Reset(position, leftSide, center);
+            turn.Add(tempCharacter);
+            characters.Add(tempCharacter);
+        }
+        else
+        {
+            GameObject GO;
+            GO = Instantiate(this.character, position, rotation);
+            Character character = new Character(GO, leftSide, center);
+            turn.Add(character);
+            characters.Add(character);
+        }
+    }
     private IEnumerator Fight()
     {
         while (true)
         {
             List<Character> newTurn = new List<Character>();
-            for (int y = 0; y < turn.Count; y++)
+            for (int indexTurn = 0; indexTurn < turn.Count; indexTurn++)
             {
                 if (characterRight.Count == 0 || characterLeft.Count == 0)
                 {
                     int count = characterRight.Count;
-                    for (int z = 0; z < count; z++)
+                    for (int i = 0; i < count; i++)
                     {
                         PoolCharacters.Add(characterRight[0]);
                         characterRight.RemoveAt(0);
                     }
                     count = characterLeft.Count;
-                    for (int x = 0; x < count; x++)
+                    for (int i = 0; i < count; i++)
                     {
                         PoolCharacters.Add(characterLeft[0]);
                         characterLeft.RemoveAt(0);
@@ -151,9 +146,9 @@ public class Game : MonoBehaviour
                     RestartGame();
                     yield break;
                 }
-                if (turn[y].GetDeath() == false)
+                if (turn[indexTurn].GetDeath() == false)
                 {
-                    bool leftSide = turn[y].getSide();
+                    bool leftSide = turn[indexTurn].getSide();
                     if (leftSide == true)
                     {
                         if (boolAutoFight == false)
@@ -163,7 +158,7 @@ public class Game : MonoBehaviour
                             yield return StartCoroutine(PlayerWaiting());
                             if (boolWait == false)
                             {
-                                yield return StartCoroutine(PlayerAttack(y));
+                                yield return StartCoroutine(PlayerAttack(indexTurn));
                             }
                             else
                             {
@@ -172,12 +167,12 @@ public class Game : MonoBehaviour
                         }
                         else
                         {
-                            yield return StartCoroutine(AIAttack(characterRight, y));
+                            yield return StartCoroutine(AIAttack(characterRight, indexTurn));
                         }
                     }
                     else
                     {
-                        yield return StartCoroutine(AIAttack(characterLeft, y));
+                        yield return StartCoroutine(AIAttack(characterLeft, indexTurn));
                     }
                 }
             }
@@ -245,9 +240,9 @@ public class Game : MonoBehaviour
         StartCoroutine(turn[turnIndex].RunCenter(attack));
         int index = Random.Range(0, Characters.Count);
         Character TargetCharacter = Characters[index];
-        attack = false;
         CancellationTokenSource cts = new CancellationTokenSource();
         StartCoroutine(turn[turnIndex].Aim(TargetCharacter.GetBoneHead(), cts.Token, TargetCharacter.GetBody()));
+        attack = false;
         StartCoroutine(TargetCharacter.RunCenter(attack));
         yield return new WaitForSeconds(delayRun);
         StartCoroutine(turn[turnIndex].Shoot(cts));
@@ -286,5 +281,9 @@ public class Game : MonoBehaviour
             text.text = "Автобой\nВыключен";
             image.color = Color.red;
         }
+    }
+    public void Exit()
+    {
+        Application.Quit();
     }
 }
