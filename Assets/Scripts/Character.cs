@@ -5,19 +5,19 @@ using Spine.Unity;
 using System.Threading;
 public struct Character
 {
-    int health;
-    Text textHealth;
-    bool leftSide;
-    SkeletonAnimation skeletonAnimation;
-    bool death;
-    Transform body;
-    Vector3 center;
-    int runningSpeed;
-    Vector3 place;
-    Spine.Bone boneHead;
-    Spine.Bone boneAim;
-    MeshRenderer meshRenderer;
-    RectTransform canvasText;
+    private int health;
+    private Text textHealth;
+    private bool leftSide;
+    private SkeletonAnimation skeletonAnimation;
+    private bool death;
+    private Transform body;
+    private Vector3 center;
+    private int runningSpeed;
+    private Vector3 place;
+    private Spine.Bone boneHead;
+    private Spine.Bone boneAim;
+    private MeshRenderer meshRenderer;
+    private RectTransform canvasText;
     public Character(GameObject GO, bool leftSide, Transform center)
     {
         health = 100;
@@ -40,10 +40,6 @@ public struct Character
         {
             canvasText.rotation = Quaternion.identity;
         }
-    }
-    public int gethealth()
-    {
-        return health;
     }
     public bool getSide()
     {
@@ -110,11 +106,6 @@ public struct Character
     {
         return death;
     }
-    public Vector2 GetPositionHead()
-    {
-        Vector2 positionHead = new Vector2(boneHead.WorldX, boneHead.WorldY) + (Vector2)body.position;
-        return positionHead;
-    }
     public Spine.Bone GetBoneHead()
     {
         return boneHead;
@@ -177,11 +168,11 @@ public struct Character
         SetLayerBack();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
     }
-    public void SetLayerAttack()
+    private void SetLayerAttack()
     {
         meshRenderer.sortingOrder = 4;
     }
-    public void SetLayerTop()
+    private void SetLayerTop()
     {
         meshRenderer.sortingOrder = 3;
     }
