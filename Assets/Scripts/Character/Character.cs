@@ -43,8 +43,8 @@ public class Character
     }
     public int TakeAwayHealth()
     {
-        //health -= Random.Range(30, 101);
-        health -= 100;
+        health -= Random.Range(30, 101);
+        //health -= 100;
         if (health >= 0)
         {
             textHealth.text = health.ToString();
