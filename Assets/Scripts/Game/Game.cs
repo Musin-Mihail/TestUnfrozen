@@ -1,22 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using System.Threading;
 using UnityEngine.UI;
 public class Game : MonoBehaviour
 {
     private bool boolPlayerChoice = false;
     [SerializeField] private Transform playerChoice;
     [SerializeField] private Transform selectTarget;
-    [SerializeField] private Transform playerFight;
-    [SerializeField] private Transform playerWait;
+    private Transform playerFight;
+    private Transform playerWait;
     private Generation generation = new Generation();
     private Fight fight;
     private void Start()
     {
-        GameObject GO = new GameObject();
-        GO.AddComponent<Fight>();
-        fight = GO.GetComponent<Fight>();
+        playerFight = playerChoice.GetChild(0).transform;
+        playerWait = playerChoice.GetChild(1).transform;
+        fight = gameObject.AddComponent<Fight>();
         RestartGame();
     }
     private void Update()
