@@ -5,15 +5,7 @@ using System.Threading;
 using UnityEngine.UI;
 public class Game : MonoBehaviour
 {
-    [SerializeField] private List<Transform> characterLocationsLeft;
-    [SerializeField] private List<Transform> characterLocationsRight;
-    [SerializeField] private Transform centerLeft;
-    [SerializeField] private Transform centerRight;
     private List<Character> turn = new List<Character>();
-    private GameObject character;
-    private List<Character> characterLeft = new List<Character>();
-    private List<Character> characterRight = new List<Character>();
-    private List<Character> PoolCharacters = new List<Character>();
     private float delayRun = 2.5f;
     private float delayShoot = 0.5f;
     private bool PlayerChoice = false;
@@ -26,14 +18,9 @@ public class Game : MonoBehaviour
     private bool boolAutoFight = false;
     private Character targetCharacter;
     private int indexTarget;
-    Quaternion rotationLeft = Quaternion.Euler(0, 0, 0);
-    Quaternion rotationRight = Quaternion.Euler(0, -180, 0);
-    Transform attacker;
-    Transform defender;
-    bool run;
+    private Generation generation = new Generation();
     private void Start()
     {
-        character = Resources.Load<GameObject>("Character");
         RestartGame();
     }
     private void Update()
@@ -45,11 +32,11 @@ public class Game : MonoBehaviour
             {
                 if (boolFight == true)
                 {
-                    for (int i = 0; i < characterRight.Count; i++)
+                    for (int i = 0; i < generation.GetCountCharactersRight(); i++)
                     {
-                        if (characterRight[i].GetBody() == hit.transform)
+                        if (generation.GetCharacterRight(i).GetBody() == hit.transform)
                         {
-                            targetCharacter = characterRight[i];
+                            targetCharacter = generation.GetCharacterRight(i);
                             indexTarget = i;
                             PlayerChoice = false;
                             selectTarget.gameObject.SetActive(false);
@@ -77,49 +64,8 @@ public class Game : MonoBehaviour
     }
     private void RestartGame()
     {
-        Generation();
+        turn = generation.StartGeneration();
         StartCoroutine(Fight());
-    }
-    private void Generation()
-    {
-        bool leftSide;
-        turn.Clear();
-        foreach (var item in characterLocationsLeft)
-        {
-            leftSide = true;
-            PoolAddCharacter(leftSide, item.position, centerLeft, characterLeft, rotationLeft);
-        }
-        foreach (var item in characterLocationsRight)
-        {
-            leftSide = false;
-            PoolAddCharacter(leftSide, item.position, centerRight, characterRight, rotationRight);
-        }
-        for (int i = 0; i < turn.Count; i++)
-        {
-            Character tempCharacter = turn[i];
-            int randomIndex = Random.Range(i, turn.Count);
-            turn[i] = turn[randomIndex];
-            turn[randomIndex] = tempCharacter;
-        }
-    }
-    void PoolAddCharacter(bool leftSide, Vector3 position, Transform center, List<Character> characters, Quaternion rotation)
-    {
-        if (PoolCharacters.Count > 0)
-        {
-            Character tempCharacter = PoolCharacters[0];
-            PoolCharacters.RemoveAt(0);
-            tempCharacter.Reset(position, leftSide, center);
-            turn.Add(tempCharacter);
-            characters.Add(tempCharacter);
-        }
-        else
-        {
-            GameObject GO;
-            GO = Instantiate(this.character, position, rotation);
-            Character character = new Character(GO, leftSide, center);
-            turn.Add(character);
-            characters.Add(character);
-        }
     }
     private IEnumerator Fight()
     {
@@ -128,19 +74,19 @@ public class Game : MonoBehaviour
             List<Character> newTurn = new List<Character>();
             for (int indexTurn = 0; indexTurn < turn.Count; indexTurn++)
             {
-                if (characterRight.Count == 0 || characterLeft.Count == 0)
+                if (generation.GetCountCharactersRight() == 0 || generation.GetCountCharactersLeft() == 0)
                 {
-                    int count = characterRight.Count;
+                    int count = generation.GetCountCharactersLeft();
                     for (int i = 0; i < count; i++)
                     {
-                        PoolCharacters.Add(characterRight[0]);
-                        characterRight.RemoveAt(0);
+                        generation.AddCharacterPool(generation.GetCharacterLeft(0));
+                        generation.RemoveCharacterLeft(0);
                     }
-                    count = characterLeft.Count;
+                    count = generation.GetCountCharactersRight();
                     for (int i = 0; i < count; i++)
                     {
-                        PoolCharacters.Add(characterLeft[0]);
-                        characterLeft.RemoveAt(0);
+                        generation.AddCharacterPool(generation.GetCharacterRight(0));
+                        generation.RemoveCharacterRight(0);
                     }
                     yield return new WaitForSeconds(2.0f);
                     RestartGame();
@@ -167,12 +113,12 @@ public class Game : MonoBehaviour
                         }
                         else
                         {
-                            yield return StartCoroutine(AIAttack(characterRight, indexTurn));
+                            yield return StartCoroutine(AIAttack(generation.GetListCharacterRight(), indexTurn));
                         }
                     }
                     else
                     {
-                        yield return StartCoroutine(AIAttack(characterLeft, indexTurn));
+                        yield return StartCoroutine(AIAttack(generation.GetListCharacterLeft(), indexTurn));
                     }
                 }
             }
@@ -222,14 +168,14 @@ public class Game : MonoBehaviour
         if (targetCharacter.GetDeath() == true)
         {
             targetCharacter.SetLayerBack();
-            PoolCharacters.Add(targetCharacter);
-            characterRight.RemoveAt(indexTarget);
+            generation.AddCharacterPool(targetCharacter);
+            generation.RemoveCharacterRight(indexTarget);
         }
         else
         {
             StartCoroutine(targetCharacter.Hit());
             StartCoroutine(targetCharacter.RunBack());
-            characterRight[indexTarget] = targetCharacter;
+            generation.ChangeCharacterRight(indexTarget, targetCharacter);
         }
         StartCoroutine(turn[turnIndex].RunBack());
         yield return new WaitForSeconds(delayRun);
@@ -253,7 +199,7 @@ public class Game : MonoBehaviour
         if (TargetCharacter.GetDeath() == true)
         {
             TargetCharacter.SetLayerBack();
-            PoolCharacters.Add(TargetCharacter);
+            generation.AddCharacterPool(TargetCharacter);
             Characters.RemoveAt(index);
         }
         else

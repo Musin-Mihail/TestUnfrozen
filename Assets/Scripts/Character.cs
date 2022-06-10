@@ -3,37 +3,33 @@ using UnityEngine;
 using UnityEngine.UI;
 using Spine.Unity;
 using System.Threading;
-public struct Character
+public class Character
 {
-    private int health;
+    private int health = 100;
     private Text textHealth;
     private bool leftSide;
     private SkeletonAnimation skeletonAnimation;
-    private bool death;
+    private bool death = false;
     private Transform body;
     private Vector3 center;
-    private int runningSpeed;
+    private int runningSpeed = 20;
     private Vector3 place;
     private Spine.Bone boneHead;
     private Spine.Bone boneAim;
     private MeshRenderer meshRenderer;
     private RectTransform canvasText;
-    public Character(GameObject GO, bool leftSide, Transform center)
+    public Character(GameObject GO, bool leftSide, Vector3 center)
     {
-        health = 100;
         this.leftSide = leftSide;
         skeletonAnimation = GO.GetComponent<SkeletonAnimation>();
         skeletonAnimation.state.SetAnimation(0, "idle", true);
         body = GO.transform;
-        death = false;
-        this.center = center.position;
-        runningSpeed = 20;
+        this.center = center;
         place = GO.transform.position;
         boneHead = skeletonAnimation.Skeleton.FindBone("head");
         boneAim = skeletonAnimation.Skeleton.FindBone("crosshair");
         meshRenderer = GO.GetComponent<MeshRenderer>();
         textHealth = GO.GetComponentInChildren<Text>();
-        RectTransform test = GO.transform.GetChild(0).GetComponent<RectTransform>();
         textHealth.text = health.ToString();
         canvasText = GO.transform.GetChild(0).GetComponent<RectTransform>();
         if (leftSide == false)
@@ -47,8 +43,8 @@ public struct Character
     }
     public int TakeAwayHealth()
     {
-        health -= Random.Range(30, 101);
-        //health -= 100;
+        //health -= Random.Range(30, 101);
+        health -= 100;
         if (health >= 0)
         {
             textHealth.text = health.ToString();
@@ -182,7 +178,7 @@ public struct Character
     {
         meshRenderer.sortingOrder = 2;
     }
-    public void Reset(Vector3 newPosition, bool leftSide, Transform center)
+    public void Reset(Vector3 newPosition, bool leftSide, Vector3 center)
     {
         body.position = newPosition;
         place = newPosition;
@@ -192,7 +188,7 @@ public struct Character
         textHealth.text = health.ToString();
         this.leftSide = leftSide;
         death = false;
-        this.center = center.position;
+        this.center = center;
         if (leftSide == true)
         {
             body.rotation = Quaternion.Euler(0, 0, 0);
