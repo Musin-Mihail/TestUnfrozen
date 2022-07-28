@@ -31,14 +31,14 @@ namespace Gameplay
             {
                 RaycastHit2D hit = Physics2D.Raycast(_camera.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
                 if (!hit) return;
-                if (_fight.GetboolFight() == true)
+                if (_fight.BoolFight == true)
                 {
                     for (int i = 0; i < _charactersController.CharacterRight.Count; i++)
                     {
                         if (_charactersController.CharacterRight[i].transform == hit.transform)
                         {
-                            _fight.SetTargetCharacter(_charactersController.CharacterRight[i]);
-                            _fight.SetIndexTarget(i);
+                            _fight.TargetCharacter = _charactersController.CharacterRight[i];
+                            _fight.IndexTarget = i;
                             BoolPlayerChoice = false;
                             _selectTarget.gameObject.SetActive(false);
                             break;
@@ -49,7 +49,7 @@ namespace Gameplay
                 {
                     if (hit.transform == _playerFight)
                     {
-                        _fight.SetBoolFight(true);
+                        _fight.BoolFight = true;
                         _playerFight.gameObject.SetActive(false);
                         _playerWait.gameObject.SetActive(false);
                         _selectTarget.gameObject.SetActive(true);
@@ -57,17 +57,29 @@ namespace Gameplay
                 }
                 if (hit.transform == _playerWait)
                 {
-                    _fight.SetBoolWait(true);
+                    _fight.BoolWait = true;
                     ToggleChoiceUI(false);
                     BoolPlayerChoice = false;
                 }
             }
         }
 
-        private void ToggleChoiceUI(bool toggle)
+        public void ChangeAutoFight(Button button)
         {
-            _playerFight.gameObject.SetActive(toggle);
-            _playerWait.gameObject.SetActive(toggle);
+            Text text = button.GetComponentInChildren<Text>();
+            Image image = button.GetComponent<Image>();
+            if (_fight.BoolAutoFight == false)
+            {
+                _fight.BoolAutoFight = true;
+                text.text = "Автобой\nвключен";
+                image.color = Color.green;
+            }
+            else
+            {
+                _fight.BoolAutoFight = false;
+                text.text = "Автобой\nвыключен";
+                image.color = Color.red;
+            }
         }
 
         public void RestartGame()
@@ -75,27 +87,14 @@ namespace Gameplay
             List<Characters.Character> turn = _charactersController.StartGeneration();
             StartCoroutine(_fight.StartFight(_charactersController, turn, this));
         }
-        
-        public void ChangeAutoFight(Button button)
+
+        public void EnablePlayerChoice() 
+            => ToggleChoiceUI(true);
+
+        private void ToggleChoiceUI(bool toggle)
         {
-            Text text = button.GetComponentInChildren<Text>();
-            Image image = button.GetComponent<Image>();
-            if (_fight.GetBoolAutoFight() == false)
-            {
-                _fight.SetBoolAutoFight(true);
-                text.text = "Автобой\nвключен";
-                image.color = Color.green;
-            }
-            else
-            {
-                _fight.SetBoolAutoFight(false);
-                text.text = "Автобой\nвыключен";
-                image.color = Color.red;
-            }
-        }
-        public void EnablePlayerChoice()
-        {
-            ToggleChoiceUI(true);
+            _playerFight.gameObject.SetActive(toggle);
+            _playerWait.gameObject.SetActive(toggle);
         }
     }
 }
