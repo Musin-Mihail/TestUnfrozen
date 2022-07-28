@@ -651,7 +651,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -80.29999, y: -75}
+  m_AnchoredPosition: {x: -80.25, y: -75}
   m_SizeDelta: {x: 185.9, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &991742453
@@ -1288,10 +1288,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1280, y: 720}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -1662,22 +1662,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66e0abf1bc08d4b46813a45a7de931a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterLocationsLeft:
-  - {fileID: 1017914418}
-  - {fileID: 1939573385}
-  - {fileID: 1415332719}
-  - {fileID: 1764406048}
-  characterLocationsRight:
-  - {fileID: 1824715237}
-  - {fileID: 1400869931}
-  - {fileID: 1584370644}
-  - {fileID: 1714510871}
-  centerLeft: {fileID: 280655545}
-  centerRight: {fileID: 608398794}
   playerChoice: {fileID: 1998205358}
   selectTarget: {fileID: 1859606771}
-  playerFight: {fileID: 156223924}
-  playerWait: {fileID: 1517060286}
 --- !u!4 &2003628885
 Transform:
   m_ObjectHideFlags: 0

@@ -68,13 +68,13 @@ public class Game : MonoBehaviour
         if (fight.GetBoolAutoFight() == false)
         {
             fight.SetBoolAutoFight(true);
-            text.text = "Автобой\nВключён";
+            text.text = "???????\n???????";
             image.color = Color.green;
         }
         else
         {
             fight.SetBoolAutoFight(false);
-            text.text = "Автобой\nВыключен";
+            text.text = "???????\n????????";
             image.color = Color.red;
         }
     }
